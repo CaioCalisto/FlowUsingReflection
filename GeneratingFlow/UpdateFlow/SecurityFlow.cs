@@ -1,4 +1,5 @@
 using System.Reflection;
+using UpdateFlow.Outputs;
 using UpdateFlow.Products;
 using UpdateFlow.Transformation.Bullets;
 using UpdateFlow.Transformation.Specials;
@@ -26,7 +27,11 @@ public class SecurityFlow
         }
 
         // third step: save in some external service
-
+        var externalServices = GetProcess<IOutput>(product.Name);
+        foreach (var externalService in externalServices)
+        {
+            await externalService.Save(finalProduct);
+        }
     }
 
     private IEnumerable<T> GetProcess<T>(string productType)
@@ -34,11 +39,11 @@ public class SecurityFlow
         List<T> operators = new List<T>();
 
         var allOperators = Assembly.GetAssembly(typeof(T)).GetTypes()
-            .Where(t => (typeof(T)).IsAssignableFrom(t) 
-                        && t.IsClass 
-                        && t.IsInterface == false 
+            .Where(t => (typeof(T)).IsAssignableFrom(t)
+                        && t.IsClass
+                        && t.IsInterface == false
                         && t.IsAbstract == false
-                        && GetProductAttribute(t).Any(a => a.GetProductType() == productType));
+                        && GetProductAttribute(t).Any(a => a.GetProductTypes().Contains(productType)));
         
         foreach (Type type in allOperators)
         {

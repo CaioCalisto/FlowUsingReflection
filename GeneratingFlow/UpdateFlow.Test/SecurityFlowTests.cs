@@ -30,16 +30,17 @@ public class SecurityFlowTests
     public async void SituationA()
     {
         // Assert
+        await DeleteTableAsync();
         await CreateTableAsync();
         var productName = "A";
         var product = new Product(productName);
         var expectedProductSaved = "A acid bullet launcher";
         
         // Act
-        flow.Execute(product);
+        await flow.Execute(product);
         
         // Assert
-        var allData = await GetAllData();
+        var allData = await GetAllDataAsync();
         allData.Should().Contain(data => data.Name == expectedProductSaved);
     }
     
@@ -47,20 +48,21 @@ public class SecurityFlowTests
     public async void SituationB()
     {
         // Assert
+        await DeleteTableAsync();
         await CreateTableAsync();
         var productName = "B";
         var product = new Product(productName);
-        var expectedProductSaved = "B granade bullet launcher - scope";
+        var expectedProductSaved = "B granade bullet launcher - Scope";
 
         // Act
-        flow.Execute(product);
+        await flow.Execute(product);
         
         // Assert
-        var allData = await GetAllData();
+        var allData = await GetAllDataAsync();
         allData.Should().Contain(data => data.Name == expectedProductSaved);
     }
 
-    private async Task<IEnumerable<Security>> GetAllData()
+    private async Task<IEnumerable<Security>> GetAllDataAsync()
     {
         var table = _context.GetTargetTable<Security>();
         var scanOps = new ScanOperationConfig();
@@ -68,6 +70,17 @@ public class SecurityFlowTests
         var results = table.Scan(scanOps);
         List<Document> data = await results.GetNextSetAsync();
         return _context.FromDocuments<Security>(data);
+    }
+
+    // Of course it needs to run alone
+    private async Task DeleteTableAsync()
+    {
+        var request = new DeleteTableRequest
+        {
+            TableName = "Security",
+        };
+
+        var response = await _dynamoDb.DeleteTableAsync(request);
     }
     
     private async Task CreateTableAsync()

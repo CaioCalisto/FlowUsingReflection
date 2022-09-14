@@ -4,8 +4,7 @@ using UpdateFlow.Products;
 
 namespace UpdateFlow.Outputs.AWSDatabase;
 
-[Product("A")]
-[Product("B")]
+[Product("A", "B")]
 public class SecurityCollection : IOutput
 {
     private readonly IDynamoDBContext _context;
